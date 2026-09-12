@@ -165,6 +165,42 @@ cp .env.example .env
 4. Ejecutar un análisis de prueba
 python main.py --file data/sample_phishing.eml
 
+---
+
+## 🔌 Integración en Vivo y Uso Corporativo (IMAP)
+
+SentinelMail no solo permite analizar archivos `.eml` estáticos, sino que también cuenta con un conector en tiempo real (`--live`) para enlazarlo directamente con bandejas de entrada corporativas o personales (Gmail, Outlook, servidores IMAP privados).
+
+### 1. Configuración de Credenciales
+Crea o edita tu archivo `.env` en la raíz del proyecto agregando los datos de tu servidor de correo:
+
+```env
+# Configuración del Servidor IMAP
+IMAP_SERVER=imap.gmail.com
+IMAP_PORT=993
+IMAP_USER=tu_correo@empresa.com
+IMAP_PASSWORD=tu_contraseña_de_aplicacion
+
+# Configuración de Alertas (Telegram)
+TELEGRAM_BOT_TOKEN=tu_token_de_telegram
+TELEGRAM_CHAT_ID=tu_chat_id
+
+Nota de seguridad: Para cuentas de Gmail o Microsoft, se recomienda generar una Contraseña de Aplicación (App Password) específica para que el script tenga acceso seguro mediante SSL sin comprometer tu contraseña principal.
+
+2. Ejecución del Escáner en Tiempo Real
+Escanear la Bandeja de Entrada Principal (INBOX):
+
+Bash
+python main.py --live --mailbox INBOX
+Escanear la Carpeta de Spam o Correo No Deseado:
+
+Bash
+python main.py --live --mailbox Spam
+El sistema se conectará de forma segura vía SSL, detectará los correos nuevos no leídos, calculará su índice de riesgo mediante cabeceras, enlaces y NLP, generará el reporte ejecutivo en HTML y enviará una alerta push inmediata a Telegram si la severidad es alta.
+
+
+---
+
 
 ⚖️ Licencia
 Este proyecto está bajo la Licencia MIT - consulta el archivo LICENSE para más detalles.
