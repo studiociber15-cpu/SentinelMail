@@ -35,6 +35,26 @@ Al finalizar el análisis, el sistema asigna un **Score de Riesgo Global** y gen
 
 ---
 
+---
+
+## 📸 Pruebas de Campo con Spam y Phishing Real
+
+SentinelMail fue probado con muestras reales (`.eml`) de campañas de phishing y spam activas, logrando identificar los patrones de ingeniería social, alertas de urgencia e intentos de captura de credenciales:
+
+### Caso 1: Phishing de Suplantación de Servicio (iCloud/Cloud Storage)
+* **Score Obtenido:** 60/100 (Severidad ALTA)
+* **Detección:** Frases de coerción/urgencia y solicitud de actualización de datos de pago.
+
+![Caso 1 - Phishing de iCloud](data/spam_real.png)
+
+---
+
+### Caso 2: Spam Malicioso / Adultos (Engaño de Citas)
+* **Score Obtenido:** 60/100 (Severidad ALTA)
+* **Detección:** Patrones de spam explícito y enlaces de redirección a perfiles externos.
+
+![Caso 2 - Spam Malicioso](data/spam_real2.png)
+
 ## 🛠️ Arquitectura del Sistema
 
 El flujo de procesamiento sigue un modelo en capas modular:
