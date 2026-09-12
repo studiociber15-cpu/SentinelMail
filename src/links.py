@@ -1,73 +1,76 @@
 import re
-from urllib.parse import urlparse
+import requests
 from bs4 import BeautifulSoup
 
 class LinkAnalyzer:
-    """Módulo para extraer y evaluar la reputación/riesgo de los enlaces dentro de un correo."""
+    """Módulo avanzado para extraer, seguir redirecciones y analizar enlaces en busca de amenazas."""
 
-    # Palabras clave sospechosas en dominios imitación
-    SUSPICIOUS_KEYWORDS = ["login", "verify", "secure", "update", "account", "banco", "soporte", "signin"]
-
-    # Lista de acortadores conocidos
-    URL_SHORTENERS = ["bit.ly", "tinyurl.com", "goo.gl", "is.gd", "buff.ly", "ow.ly", "t.co"]
+    # Dominios de acortadores comunes
+    SHORTENER_DOMAINS = ["bit.ly", "t.co", "tinyurl.com", "goo.gl", "ow.ly", "buff.ly", "adf.ly", "is.gd", "lnkd.in"]
 
     def __init__(self, raw_html_or_text):
         self.raw_content = raw_html_or_text
 
-    def extract_urls(self):
-        """Extrae todas las URLs tanto del HTML como del texto plano."""
-        urls = set()
-        
-        # 1. Extraer enlaces desde etiquetas <a> en HTML
-        soup = BeautifulSoup(self.raw_content, 'html.parser')
-        for a_tag in soup.find_all('a', href=True):
-            urls.add(a_tag['href'])
-
-        # 2. Extraer URLs mediante expresiones regulares (por si hay texto plano)
-        regex_urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', self.raw_content)
-        for url in regex_urls:
-            urls.add(url)
-
-        return list(urls)
+    def _resolve_url(self, url):
+        """Sigue las redirecciones HTTP automáticamente para obtener la URL final."""
+        try:
+            # Petición HEAD rápida para seguir redirecciones sin descargar todo el contenido
+            response = requests.head(url, allow_redirects=True, timeout=3)
+            return response.url
+        except Exception:
+            try:
+                # Intento de respaldo con GET si HEAD es bloqueado por el servidor
+                response = requests.get(url, allow_redirects=True, timeout=3, stream=True)
+                return response.url
+            except Exception:
+                return url  # Si falla la conexión o el dominio está muerto, retorna el original
 
     def analyze_links(self):
-        """Evalúa cada URL encontrada y determina factores de riesgo."""
-        urls = self.extract_urls()
-        findings = []
-        risk_score_penalty = 0
+        """Extrae todas las URLs del correo, detecta acortadores y audita el destino final."""
+        soup = BeautifulSoup(self.raw_content, 'html.parser')
+        links = []
+        
+        # 1. Extraer enlaces de etiquetas HTML <a>
+        for a in soup.find_all('a', href=True):
+            links.append(a['href'])
+            
+        # 2. Extraer URLs en texto plano mediante expresiones regulares
+        url_pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
+        text = soup.get_text()
+        text_links = re.findall(url_pattern, text)
+        
+        all_links = list(set(links + text_links))
+        analyzed_links = []
+        link_penalties = 0
 
-        if not urls:
-            return {
-                "urls_found": [],
-                "findings": ["ℹ️ Enlaces: No se detectaron URLs en el cuerpo del correo."],
-                "penalty": 0
-            }
+        for link in all_links:
+            is_shortened = any(domain in link.lower() for domain in self.SHORTENER_DOMAINS)
+            final_destination = self._resolve_url(link) if (is_shortened or "http" in link) else link
+            
+            # Verificaciones de seguridad sobre el destino final
+            has_https = final_destination.startswith("https://")
+            has_ip = bool(re.search(r'https?://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', final_destination))
 
-        findings.append(f"🔗 Enlaces: Se encontraron {len(urls)} enlace(s) para análisis.")
+            status = "Seguro"
+            if not has_https:
+                status = "Inseguro (HTTP plano)"
+                link_penalties += 5
+            if has_ip:
+                status = "Peligroso (Usa dirección IP directa)"
+                link_penalties += 15
+            if is_shortened:
+                status = f"Acortado -> Redirige a: {final_destination}"
+                link_penalties += 10
 
-        for url in urls:
-            parsed = urlparse(url)
-            domain = parsed.netloc.lower()
-
-            # 1. Detección de uso de dirección IP directa en lugar de dominio
-            if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', domain):
-                findings.append(f"❌ Riesgo Crítico: Enlace usa dirección IP directa en lugar de dominio ({url})")
-                risk_score_penalty += 30
-
-            # 2. Detección de acortadores de URLs (Ocultamiento de destino)
-            if any(shortener in domain for shortener in self.URL_SHORTENERS):
-                findings.append(f"⚠️ Advertencia: Uso de acortador de URL para ocultar destino ({domain})")
-                risk_score_penalty += 15
-
-            # 3. Detección de palabras clave de engaño (Typosquatting / Spoofing)
-            for kw in self.SUSPICIOUS_KEYWORDS:
-                if kw in domain and not domain.endswith((".com", ".net", ".org", ".gob.ve", ".co")):
-                    findings.append(f"⚠️ Dominio Sospechoso: Contiene palabra clave de trampa '{kw}' ({domain})")
-                    risk_score_penalty += 20
-                    break
+            analyzed_links.append({
+                "original": link,
+                "final": final_destination,
+                "is_shortened": is_shortened,
+                "status": status
+            })
 
         return {
-            "urls_found": urls,
-            "findings": findings,
-            "penalty": min(risk_score_penalty, 50)  # Límite máximo de penalización por enlaces
+            "total_links": len(all_links),
+            "analyzed_links": analyzed_links,
+            "penalty": min(link_penalties, 40)
         }
