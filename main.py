@@ -10,7 +10,7 @@ from src.reporter import Reporter
 from src.notifier import TelegramNotifier
 from src.imap_connector import IMAPConnector
 from src.database import SecurityDatabase
-
+from src.whois_checker import DomainAgeChecker
 
 def analyze_raw_content(raw_content):
     """Ejecuta todos los motores de análisis de SentinelMail sobre un contenido de correo en crudo."""
@@ -18,6 +18,14 @@ def analyze_raw_content(raw_content):
     header_analyzer = HeaderAnalyzer(raw_content)
     basic_info = header_analyzer.get_basic_info()
     header_results = header_analyzer.analyze_authentication()
+
+    # 1.1 Verificación de Antigüedad de Dominio (WHOIS)
+    whois_checker = DomainAgeChecker(basic_info.get("sender", ""))
+    whois_results = whois_checker.check_domain_age()
+
+    # Añadir el hallazgo y la penalización al cálculo general
+    header_results["findings"].append(whois_results["finding"])
+    header_results["penalty"] = header_results.get("penalty", 0) + whois_results["penalty"]
 
     # 2. Análisis de Enlaces (URLs)
     link_analyzer = LinkAnalyzer(raw_content)
