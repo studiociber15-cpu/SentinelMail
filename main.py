@@ -9,6 +9,8 @@ from src.risk_calculator import RiskCalculator
 from src.reporter import Reporter
 from src.notifier import TelegramNotifier
 from src.imap_connector import IMAPConnector
+from src.database import SecurityDatabase
+
 
 def analyze_raw_content(raw_content):
     """Ejecuta todos los motores de análisis de SentinelMail sobre un contenido de correo en crudo."""
@@ -34,7 +36,11 @@ def analyze_raw_content(raw_content):
     reporter.print_cli_report()
     reporter.generate_html_report()
 
-    # 6. Notificación Móvil (Telegram)
+    # 6. Almacenamiento en Base de Datos Histórica (SQLite)
+    db = SecurityDatabase()
+    db.save_scan(basic_info, risk_data)
+
+    # 7. Notificación Móvil (Telegram)
     notifier = TelegramNotifier()
     notifier.send_alert(basic_info, risk_data)
 
