@@ -1,0 +1,16 @@
+From: Banco de Seguridad <alertas@banco-seguro-login.net>
+To: victima@correo.com
+Subject: URGENTE: Su cuenta ha sido suspendida
+Date: Fri, 11 Sep 2026 10:15:00 -0400
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+Authentication-Results: mx.google.com; spf=fail reason="domain spoofing detected"; dkim=fail; dmarc=fail
+
+<html>
+<body>
+<p><b>ATENCIÓN INMEDIATA REQUERIDA</b></p>
+<p>Estimado cliente, hemos detectado un cargo no autorizado en su tarjeta. Su cuenta será suspendida con un bloqueo permanente en las próximas 24 horas si no realiza la verificación de identidad.</p>
+<p>Haga clic en el enlace para restablecer contraseña y actualizar sus credenciales:</p>
+<a href="http://192.168.1.1/login-verify-banco">Verificar Cuenta Ahora</a>
+</body>
+</html>
