@@ -4,16 +4,27 @@ from bs4 import BeautifulSoup
 class NLPEngine:
     """Módulo de análisis de texto para detectar urgencia, coerción, contenido de adultos y phishing."""
 
-    # 1. Frases de urgencia, presión y suplantación
+    # 1. Frases de urgencia, presión y suplantación (Ampliado)
     URGENCY_KEYWORDS = [
-        # Español
+        # Español (30+ palabras clave)
         "suspendida", "bloqueada", "inmediato", "24 horas", "urgente",
         "verificar cuenta", "pago rechazado", "eliminar datos", "accion requerida",
-        # Inglés
+        "cuenta restringida", "expira hoy", "evitar la suspension", "tiempo limite",
+        "ultima oportunidad", "confirmar identidad", "acceso inusual", "intento de acceso",
+        "desactivacion de cuenta", "cancelacion inminente", "actualice antes de",
+        "bloqueo preventivo", "multa por mora", "notificacion final", "renovar suscripcion",
+        "vence hoy", "plazo vencido", "seguridad comprometida", "verificacion obligatoria",
+        "regularizar cuenta", "accion inmediata requerida", "advertencia de seguridad",
+
+        # Inglés (30+ palabras clave)
         "blocked", "deleted", "renew", "subscription", "update payment",
-        "unable to renew", "lose all your stored data", "free now",
-        "cloud storage", "account blocked", "expiration date", "tonight only",
-        "action required", "immediate action", "account closure"
+        "unable to renew", "lose all your stored data", "free now", "cloud storage",
+        "account blocked", "expiration date", "tonight only", "action required",
+        "immediate action", "account closure", "account suspended", "expires today",
+        "unusual activity", "security alert", "final notice", "prevent suspension",
+        "confirm identity", "verify immediately", "time sensitive", "unauthorized access",
+        "last chance", "account limited", "update required", "service disruption",
+        "urgent notification", "failure to respond", "deactivation notice", "compromised account"
     ]
 
     # 2. Captura de credenciales y acceso
