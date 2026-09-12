@@ -208,6 +208,4 @@ Este proyecto está bajo la Licencia MIT - consulta el archivo LICENSE para más
 👨‍💻 Autor
 Creado con pasión por la ciberseguridad y el desarrollo defensivo.
 
-GitHub: @tu-usuario
-
-LinkedIn: Tu Nombre
+GitHub: @studiociber15-cpu
