@@ -23,9 +23,11 @@ def analyze_raw_content(raw_content):
     whois_checker = DomainAgeChecker(basic_info.get("sender", ""))
     whois_results = whois_checker.check_domain_age()
 
-    # Añadir el hallazgo y la penalización al cálculo general
-    header_results["findings"].append(whois_results["finding"])
+    # Añadir el hallazgo solo si contiene texto válido
+    if whois_results.get("finding"):
+       header_results["findings"].append(whois_results["finding"])
     header_results["penalty"] = header_results.get("penalty", 0) + whois_results["penalty"]
+
 
     # 2. Análisis de Enlaces (URLs)
     link_analyzer = LinkAnalyzer(raw_content)
